@@ -1,0 +1,5 @@
+.vscode
+.devcontainer
+.env
+values_local.yaml
+.DS_Store
