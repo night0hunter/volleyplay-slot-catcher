@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -55,7 +56,7 @@ func (h *handler) Authorize(ctx context.Context) error {
 				return errors.Wrap(err, "btn.Click")
 			}
 
-			os.Exit(1)
+			return nil
 		}
 	}
 
@@ -94,6 +95,8 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		if err != nil {
 			return errors.Wrap(err, "buttonBook.Click")
 		}
+
+		fmt.Println("Вы успешно записаны на занятие!")
 	}
 
 	h.driver.Refresh()

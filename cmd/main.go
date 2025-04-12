@@ -65,7 +65,7 @@ func main() {
 		fmt.Println(errors.Wrap(err, "handler.Authorize"))
 	}
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 5)
 	// err = driver.Get("http://localhost:3333/")
 	err = driver.Get(classURL)
 	if err != nil {
@@ -79,7 +79,7 @@ func main() {
 		cron.WithParser(cron.NewParser(cron.Second|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow)),
 	)
 
-	_, err = c.AddJob("*/5 * * * * *", cr)
+	_, err = c.AddJob("*/10 * * * * *", cr)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "c.AddJob"))
 	}
