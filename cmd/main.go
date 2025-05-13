@@ -30,11 +30,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
-	if err != nil {
-		fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
-	}
-	defer chromeService.Stop()
+	// chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
+	// if err != nil {
+	// 	fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
+	// }
+	// defer chromeService.Stop()
 
 	caps := selenium.Capabilities{}
 	caps.AddChrome(chrome.Capabilities{Args: []string{
@@ -42,7 +42,7 @@ func main() {
 	}})
 
 	// create a new remote client with the specified options
-	driver, err := selenium.NewRemote(caps, "")
+	driver, err := selenium.NewRemote(caps, "http://172.17.0.2:4444/wd/hub")
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "selenium.NewRemote"))
 	}
@@ -79,7 +79,7 @@ func main() {
 		cron.WithParser(cron.NewParser(cron.Second|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow)),
 	)
 
-	_, err = c.AddJob("*/10 * * * * *", cr)
+	_, err = c.AddJob("*/15 * * * * *", cr)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "c.AddJob"))
 	}

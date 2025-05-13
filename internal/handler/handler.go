@@ -3,8 +3,11 @@ package handler
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/tebeka/selenium"
@@ -64,14 +67,37 @@ func (h *handler) Authorize(ctx context.Context) error {
 }
 
 func (h *handler) CatchCron(ctx context.Context) error {
+	seconds := rand.Intn(10)
+	time.Sleep(time.Duration(seconds))
 	elems, err := h.driver.FindElements(selenium.ByClassName, "ng-binding")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
 	}
 
-	buttonBook, err := h.driver.FindElement(selenium.ByClassName, "button-block")
+	buttons, err := h.driver.FindElements(selenium.ByClassName, "button-block")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
+	}
+
+	var buttonBook selenium.WebElement
+
+	for _, btn := range buttons {
+		btnText, err := btn.Text()
+		if err != nil {
+			return errors.Wrap(err, "btn.Text")
+		}
+
+		if btnText == "Записаться на занятие" {
+			buttonBook = btn
+
+			break
+		}
+
+		if btnText == "Записаться в очередь" {
+			fmt.Println("Свободных мест пока нет, продолжаем...")
+
+			return nil
+		}
 	}
 
 	var val int
@@ -90,6 +116,19 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		break
 	}
 
+	classNames, err := buttonBook.GetAttribute("class")
+	if err != nil {
+		return errors.Wrap(err, "buttonBook.GetAttribute")
+	}
+
+	if hasClassName(classNames, "disabled") {
+		fmt.Println("Вы уже записаны на это занятие")
+
+		h.driver.Close()
+
+		os.Exit(1)
+	}
+
 	if val != 0 {
 		err = buttonBook.Click()
 		if err != nil {
@@ -97,9 +136,29 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		}
 
 		fmt.Println("Вы успешно записаны на занятие!")
+
+		h.driver.Close()
+
+		os.Exit(1)
+	}
+
+	if val == 0 {
+		fmt.Println("Свободных мест пока нет, продолжаем...")
 	}
 
 	h.driver.Refresh()
 
 	return nil
+}
+
+func hasClassName(classname string, searched string) bool {
+	namesSlice := strings.Split(classname, " ")
+
+	for _, class := range namesSlice {
+		if class == searched {
+			return true
+		}
+	}
+
+	return false
 }
