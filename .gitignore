@@ -3,3 +3,4 @@
 .env
 values_local.yaml
 .DS_Store
+chromedriver.exe
