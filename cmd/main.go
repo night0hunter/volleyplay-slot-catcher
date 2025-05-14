@@ -30,27 +30,39 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
-	// if err != nil {
-	// 	fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
-	// }
-	// defer chromeService.Stop()
+	chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
+	if err != nil {
+		fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
+	}
+	defer chromeService.Stop()
 
 	caps := selenium.Capabilities{}
-	caps.AddChrome(chrome.Capabilities{Args: []string{
-		"--headless-new", // comment out this line for testing
-	}})
+	caps.AddChrome(chrome.Capabilities{})
+	// caps.AddChrome(chrome.Capabilities{
+	// 	Args: []string{
+	// 		// "--headless-new", // comment out this line for testing
+	// 	},
+	// 	W3C: true,
+	// })
 
 	// create a new remote client with the specified options
-	driver, err := selenium.NewRemote(caps, "http://172.17.0.2:4444/wd/hub")
+	// driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
+	driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "selenium.NewRemote"))
+		return
+	}
+
+	if driver == nil {
+		fmt.Println("driver is nil")
+		return
 	}
 
 	// maximize the current window to avoid responsive rendering
 	err = driver.MaximizeWindow("")
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "MaximizeWindow"))
+		return
 	}
 
 	handler := handler.New(driver)
@@ -58,11 +70,13 @@ func main() {
 	err = driver.Get(authorizationURL)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "driver.Get"))
+		return
 	}
 
 	err = handler.Authorize(ctx)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "handler.Authorize"))
+		return
 	}
 
 	time.Sleep(time.Second * 5)
@@ -70,6 +84,7 @@ func main() {
 	err = driver.Get(classURL)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "driver.Get"))
+		return
 	}
 
 	cr := cronjob.NewCatchSlotCron(handler)
@@ -79,9 +94,10 @@ func main() {
 		cron.WithParser(cron.NewParser(cron.Second|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow)),
 	)
 
-	_, err = c.AddJob("*/15 * * * * *", cr)
+	_, err = c.AddJob("*/10 * * * * *", cr)
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "c.AddJob"))
+		return
 	}
 
 	c.Start()

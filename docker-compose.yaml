@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  volleyplay_slot_catcher:
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+    container_name: "volleyplay-slot-catcher"
+    depends_on:
+      - selenium
+      # - chrome
+    networks:
+      - my-network
+    env_file:
+      - path: ./.env
+        required: true
+    volumes:
+      - .:/app
+    restart: always
+
+  # chrome:
+  #   image: selenium/node-chrome:4.32.0-20250505
+  #   platform: linux/amd64
+  #   shm_size: 2gb
+  #   networks:
+  #     - my-network
+  #   depends_on:
+  #     - selenium-hub
+  #   environment:
+  #     - SE_EVENT_BUS_HOST=selenium-hub
+  #     - HUB_PORT=4444
+  #     - HUB_HOST=selenium-hub
+
+  # selenium-hub:
+  #   image: selenium/hub:4.32.0-20250505
+  #   container_name: selenium-hub
+    # networks:
+    #   - my-network
+  #   ports:
+  #     - "4444:4444"
+  selenium:
+    image: selenium/standalone-chromium:latest # Для AMD64
+# image: seleniarm/standalone-chromium:latest # Для ARM64
+    container_name: selenium-container
+    restart: unless-stopped
+    shm_size: 2g
+    ports:
+      - "4444:4444"  # Selenium WebDriver API
+      - "7900:7900"  # VNC Viewer
+    networks:
+      - my-network
+    environment:
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_SESSION_TIMEOUT=300
+      - SE_NODE_GRID_URL=http://localhost:4444
+      - SE_NODE_DETECT_DRIVERS=false
+
+networks:
+  my-network:

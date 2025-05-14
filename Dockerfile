@@ -1,7 +1,7 @@
 FROM golang:1.22
 
 # Set destination for COPY
-WORKDIR /
+WORKDIR /app
 
 # Download Go modules
 COPY go.mod go.sum ./

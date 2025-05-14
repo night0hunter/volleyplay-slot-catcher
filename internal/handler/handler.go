@@ -3,9 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -67,13 +65,7 @@ func (h *handler) Authorize(ctx context.Context) error {
 }
 
 func (h *handler) CatchCron(ctx context.Context) error {
-	seconds := rand.Intn(10)
-	time.Sleep(time.Duration(seconds))
-	elems, err := h.driver.FindElements(selenium.ByClassName, "ng-binding")
-	if err != nil {
-		return errors.Wrap(err, "driver.FindElements")
-	}
-
+	time.Sleep(time.Second * 2)
 	buttons, err := h.driver.FindElements(selenium.ByClassName, "button-block")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
@@ -87,33 +79,11 @@ func (h *handler) CatchCron(ctx context.Context) error {
 			return errors.Wrap(err, "btn.Text")
 		}
 
-		if btnText == "Записаться на занятие" {
+		if btnText == "Записаться на занятие" || btnText == "Записаться в очередь" {
 			buttonBook = btn
 
 			break
 		}
-
-		if btnText == "Записаться в очередь" {
-			fmt.Println("Свободных мест пока нет, продолжаем...")
-
-			return nil
-		}
-	}
-
-	var val int
-
-	for _, elem := range elems {
-		text, err := elem.Text()
-		if err != nil {
-			return errors.Wrap(err, "elem.Text")
-		}
-
-		val, err = strconv.Atoi(text)
-		if err != nil {
-			continue
-		}
-
-		break
 	}
 
 	classNames, err := buttonBook.GetAttribute("class")
@@ -121,7 +91,12 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		return errors.Wrap(err, "buttonBook.GetAttribute")
 	}
 
-	if hasClassName(classNames, "disabled") {
+	buttonBookText, err := buttonBook.Text()
+	if err != nil {
+		return errors.Wrap(err, "buttonBook.Text")
+	}
+
+	if hasClassName(classNames, "disabled") && buttonBookText != "Записаться в очередь" {
 		fmt.Println("Вы уже записаны на это занятие")
 
 		h.driver.Close()
@@ -129,7 +104,7 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		os.Exit(1)
 	}
 
-	if val != 0 {
+	if buttonBookText == "Записаться на занятие" {
 		err = buttonBook.Click()
 		if err != nil {
 			return errors.Wrap(err, "buttonBook.Click")
@@ -142,10 +117,7 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		os.Exit(1)
 	}
 
-	if val == 0 {
-		fmt.Println("Свободных мест пока нет, продолжаем...")
-	}
-
+	fmt.Println("Свободных мест пока нет, продолжаем...")
 	h.driver.Refresh()
 
 	return nil
