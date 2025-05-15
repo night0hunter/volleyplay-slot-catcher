@@ -25,7 +25,7 @@ func (h *handler) Authorize(ctx context.Context) error {
 	email := os.Getenv("EMAIL")
 	password := os.Getenv("PASSWORD")
 
-	inputFields, err := h.driver.FindElements(selenium.ByClassName, "ng-empty")
+	inputFields, err := h.driver.FindElements(selenium.ByXPATH, "/html/body/ion-nav-view/ion-view/ion-content/div[1]/form/ion-list/div/label")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
 	}
@@ -40,7 +40,7 @@ func (h *handler) Authorize(ctx context.Context) error {
 		return errors.Wrap(err, "password: SendKeys")
 	}
 
-	buttons, err := h.driver.FindElements(selenium.ByClassName, "button")
+	buttons, err := h.driver.FindElements(selenium.ByXPATH, "/html/body/ion-nav-view/ion-view/ion-content/div[1]/form/button")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
 	}
@@ -66,7 +66,7 @@ func (h *handler) Authorize(ctx context.Context) error {
 
 func (h *handler) CatchCron(ctx context.Context) error {
 	time.Sleep(time.Second * 2)
-	buttons, err := h.driver.FindElements(selenium.ByClassName, "button-block")
+	buttons, err := h.driver.FindElements(selenium.ByXPATH, "/html/body//button")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
 	}
@@ -81,7 +81,6 @@ func (h *handler) CatchCron(ctx context.Context) error {
 
 		if btnText == "Записаться на занятие" || btnText == "Записаться в очередь" {
 			buttonBook = btn
-
 			break
 		}
 	}
