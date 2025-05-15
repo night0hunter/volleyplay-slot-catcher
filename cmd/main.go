@@ -37,13 +37,13 @@ func main() {
 	defer chromeService.Stop()
 
 	caps := selenium.Capabilities{}
-	caps.AddChrome(chrome.Capabilities{})
-	// caps.AddChrome(chrome.Capabilities{
-	// 	Args: []string{
-	// 		// "--headless-new", // comment out this line for testing
-	// 	},
-	// 	W3C: true,
-	// })
+	// caps.AddChrome(chrome.Capabilities{})
+	caps.AddChrome(chrome.Capabilities{
+		Args: []string{
+			// "--headless-new", // comment out this line for testing
+		},
+		W3C: true,
+	})
 
 	// create a new remote client with the specified options
 	// driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
