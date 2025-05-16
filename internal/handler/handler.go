@@ -83,6 +83,10 @@ func (h *handler) CatchCron(ctx context.Context) error {
 			buttonBook = btn
 			break
 		}
+
+		if btnText == "Перезаписаться на другое занятие" {
+			return nil
+		}
 	}
 
 	classNames, err := buttonBook.GetAttribute("class")
