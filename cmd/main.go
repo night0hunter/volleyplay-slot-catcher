@@ -41,11 +41,11 @@ func main() {
 	caps.AddChrome(chrome.Capabilities{
 		Args: []string{
 			// "--headless-new", // comment out this line for testing
+			"--disable-notifications",
 		},
 		W3C: true,
 	})
 
-	// create a new remote client with the specified options
 	driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
 	// driver, err := selenium.NewRemote(caps, "")
 	if err != nil {

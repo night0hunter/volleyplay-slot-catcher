@@ -16,7 +16,7 @@ services:
         required: true
     volumes:
       - .:/app
-    restart: always
+    restart: on-failure:3
 
   # chrome:
   #   image: selenium/node-chrome:4.32.0-20250505
