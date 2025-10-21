@@ -30,6 +30,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	// comment out next 5 lines for docker
 	// chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
 	// if err != nil {
 	// 	fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
@@ -46,6 +47,7 @@ func main() {
 		W3C: true,
 	})
 
+	// empty for go run; with link for docker
 	driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
 	// driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
