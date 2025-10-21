@@ -30,24 +30,26 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
-	if err != nil {
-		fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
-	}
-	defer chromeService.Stop()
+	// comment out next 5 lines for docker
+	// chromeService, err := selenium.NewChromeDriverService("./chromedriver", 4444)
+	// if err != nil {
+	// 	fmt.Println(errors.Wrap(err, "selenium.NewChromeDriverService"))
+	// }
+	// defer chromeService.Stop()
 
 	caps := selenium.Capabilities{}
-	caps.AddChrome(chrome.Capabilities{})
-	// caps.AddChrome(chrome.Capabilities{
-	// 	Args: []string{
-	// 		// "--headless-new", // comment out this line for testing
-	// 	},
-	// 	W3C: true,
-	// })
+	// caps.AddChrome(chrome.Capabilities{})
+	caps.AddChrome(chrome.Capabilities{
+		Args: []string{
+			// "--headless-new", // comment out this line for testing
+			"--disable-notifications",
+		},
+		W3C: true,
+	})
 
-	// create a new remote client with the specified options
-	// driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
-	driver, err := selenium.NewRemote(caps, "")
+	// empty for go run; with link for docker
+	driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
+	// driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
 		fmt.Println(errors.Wrap(err, "selenium.NewRemote"))
 		return

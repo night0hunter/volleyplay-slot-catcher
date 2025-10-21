@@ -4,6 +4,7 @@ services:
     build:
       dockerfile: ./Dockerfile
       context: .
+    image: volleyplay-slot-catcher:latest
     container_name: "volleyplay-slot-catcher"
     depends_on:
       - selenium
@@ -15,7 +16,7 @@ services:
         required: true
     volumes:
       - .:/app
-    restart: always
+    restart: on-failure:3
 
   # chrome:
   #   image: selenium/node-chrome:4.32.0-20250505
