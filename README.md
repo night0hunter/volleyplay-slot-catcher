@@ -6,5 +6,5 @@ Build: docker compose up -d --build\
 Open testing browser from docker - http://localhost:7900  \
 Change VNC password steps:
 1) docker exec -it selenium-container bash
-2) x11vnc -storepasswd\
+2) x11vnc -storepasswd
 
