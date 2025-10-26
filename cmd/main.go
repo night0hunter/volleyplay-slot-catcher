@@ -47,7 +47,7 @@ func main() {
 		W3C: true,
 	})
 
-	// empty for go run; with link for docker
+	// empty for go run; with url for docker
 	driver, err := selenium.NewRemote(caps, "http://selenium:4444/wd/hub")
 	// driver, err := selenium.NewRemote(caps, "")
 	if err != nil {
@@ -88,6 +88,11 @@ func main() {
 		fmt.Println(errors.Wrap(err, "driver.Get"))
 		return
 	}
+
+	// err = handler.CatchCron(ctx)
+	// if err != nil {
+	// 	fmt.Println(errors.Wrap(err, "handler.CatchCron"))
+	// }
 
 	cr := cronjob.NewCatchSlotCron(handler)
 

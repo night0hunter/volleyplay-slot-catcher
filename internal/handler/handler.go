@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -65,33 +64,21 @@ func (h *handler) Authorize(ctx context.Context) error {
 }
 
 func (h *handler) CatchCron(ctx context.Context) error {
+	err := h.driver.Get(os.Getenv("CLASS_URL"))
+	if err != nil {
+		return errors.Wrap(err, "driver.Get")
+	}
+
 	time.Sleep(time.Second * 2)
+
 	buttons, err := h.driver.FindElements(selenium.ByXPATH, "/html/body//button")
 	if err != nil {
 		return errors.Wrap(err, "driver.FindElements")
 	}
 
-	var buttonBook selenium.WebElement
-
-	for _, btn := range buttons {
-		btnText, err := btn.Text()
-		if err != nil {
-			return errors.Wrap(err, "btn.Text")
-		}
-
-		if btnText == "Записаться на занятие" || btnText == "Записаться в очередь" {
-			buttonBook = btn
-			break
-		}
-
-		if btnText == "Перезаписаться на другое занятие" {
-			return nil
-		}
-	}
-
-	classNames, err := buttonBook.GetAttribute("class")
+	buttonBook, err := findBookButton(buttons)
 	if err != nil {
-		return errors.Wrap(err, "buttonBook.GetAttribute")
+		return errors.Wrap(err, "findBookButton")
 	}
 
 	buttonBookText, err := buttonBook.Text()
@@ -99,41 +86,93 @@ func (h *handler) CatchCron(ctx context.Context) error {
 		return errors.Wrap(err, "buttonBook.Text")
 	}
 
-	if hasClassName(classNames, "disabled") && buttonBookText != "Записаться в очередь" {
+	switch buttonBookText {
+	case "Перезаписаться на другое занятие":
 		fmt.Println("Вы уже записаны на это занятие")
 
-		h.driver.Close()
+		err = h.driver.Close()
+		if err != nil {
+			return errors.Wrap(err, "driver.Close")
+		}
 
 		os.Exit(1)
-	}
-
-	if buttonBookText == "Записаться на занятие" {
+	case "Записаться на занятие":
 		err = buttonBook.Click()
 		if err != nil {
 			return errors.Wrap(err, "buttonBook.Click")
 		}
 
+		err = h.driver.Refresh()
+		if err != nil {
+			return errors.Wrap(err, "driver.Refresh")
+		}
+
+		time.Sleep(time.Second * 2)
+
+		buttons, err = h.driver.FindElements(selenium.ByXPATH, "/html/body//button")
+		if err != nil {
+			return errors.Wrap(err, "driver.FindElements")
+		}
+
+		buttonBook, err = findBookButton(buttons)
+		if err != nil {
+			return errors.Wrap(err, "findBookButton")
+		}
+
+		buttonBookText, err = buttonBook.Text()
+		if err != nil {
+			return errors.Wrap(err, "buttonBook.Text")
+		}
+
+		if buttonBookText != "Перезаписаться на другое занятие" {
+			fmt.Println("Свободных мест пока нет, продолжаем...")
+
+			err = h.driver.Refresh()
+			if err != nil {
+				return errors.Wrap(err, "driver.Refresh")
+			}
+
+			return nil
+		}
+
 		fmt.Println("Вы успешно записаны на занятие!")
 
-		h.driver.Close()
+		err = h.driver.Close()
+		if err != nil {
+			return errors.Wrap(err, "driver.Close")
+		}
 
 		os.Exit(1)
+	default:
+		fmt.Println("Свободных мест пока нет, продолжаем...")
+		err = h.driver.Refresh()
+		if err != nil {
+			return errors.Wrap(err, "driver.Refresh")
+		}
 	}
-
-	fmt.Println("Свободных мест пока нет, продолжаем...")
-	h.driver.Refresh()
 
 	return nil
 }
 
-func hasClassName(classname string, searched string) bool {
-	namesSlice := strings.Split(classname, " ")
+func findBookButton(buttons []selenium.WebElement) (selenium.WebElement, error) {
+	for _, btn := range buttons {
+		btnText, err := btn.Text()
+		if err != nil {
+			return nil, errors.Wrap(err, "btn.Text")
+		}
 
-	for _, class := range namesSlice {
-		if class == searched {
-			return true
+		if btnText == "Записаться на занятие" {
+			return btn, nil
+		}
+
+		if btnText == "Записаться в очередь" {
+			return btn, nil
+		}
+
+		if btnText == "Перезаписаться на другое занятие" {
+			return btn, nil
 		}
 	}
 
-	return false
+	return nil, nil
 }

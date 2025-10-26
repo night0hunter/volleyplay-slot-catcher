@@ -7,8 +7,8 @@ services:
     image: volleyplay-slot-catcher:latest
     container_name: "volleyplay-slot-catcher"
     depends_on:
-      - selenium
-      # - chrome
+      selenium:
+        condition: service_healthy
     networks:
       - my-network
     env_file:
@@ -16,28 +16,8 @@ services:
         required: true
     volumes:
       - .:/app
-    restart: on-failure:3
+    restart: unless-stopped
 
-  # chrome:
-  #   image: selenium/node-chrome:4.32.0-20250505
-  #   platform: linux/amd64
-  #   shm_size: 2gb
-  #   networks:
-  #     - my-network
-  #   depends_on:
-  #     - selenium-hub
-  #   environment:
-  #     - SE_EVENT_BUS_HOST=selenium-hub
-  #     - HUB_PORT=4444
-  #     - HUB_HOST=selenium-hub
-
-  # selenium-hub:
-  #   image: selenium/hub:4.32.0-20250505
-  #   container_name: selenium-hub
-    # networks:
-    #   - my-network
-  #   ports:
-  #     - "4444:4444"
   selenium:
     image: selenium/standalone-chromium:latest # Для AMD64
 # image: seleniarm/standalone-chromium:latest # Для ARM64
@@ -55,6 +35,12 @@ services:
       - SE_NODE_SESSION_TIMEOUT=300
       - SE_NODE_GRID_URL=http://localhost:4444
       - SE_NODE_DETECT_DRIVERS=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
 
 networks:
   my-network:
